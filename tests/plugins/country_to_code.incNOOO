@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * @file
+ * Convert a country name to ISO code.
+ */
+
+$plugin = array(
+  'form' => 'feeds_tamper_country_to_code_form',
+  'callback' => 'feeds_tamper_country_to_code_callback',
+  'name' => 'Country to ISO code',
+  'multi' => 'loop',
+  'category' => 'Other',
+  'default description' => 'Convert country to ISO code',
+);
+
+function feeds_tamper_country_to_code_form($importer, $element_key, $settings) {
+  $form = array();
+  $form['help'] = array(
+    '#markup' => t('Converts this field from a language name string to the two character ISO 396-2 alpha-2 code.'),
+  );
+  return $form;
+}
+
+function feeds_tamper_country_to_code_callback($result, $item_key, $element_key, &$field, $settings, $source) {
+ // include_once DRUPAL_ROOT . '/includes/locale.inc';
+  include_once DRUPAL_ROOT . '/includes/locale.inc';
+ static $languages_list = array();
+
+  if (empty($languages_list)) {
+   // $countries = country_get_list();
+   //GPAP AGROKNOW
+   // https://api.drupal.org/api/drupal/modules%21locale%21locale.module/7
+     $languages_list = = _locale_get_predefined_list(); //locale_language_list();
+
+
+    array_walk($languages_list, '_feeds_tamper_country_to_code_strtolower');
+    $languages_list = array_flip($languages_list);
+  }
+
+  // If it's already a valid country code, leave it alone.
+  if (in_array($field, $languages_list)) {
+    return;
+  }
+
+  // Trim whitespace, set to lowercase.
+  $language = t(drupal_strtolower(trim($field)));
+  if (isset($languages_list[$language])) {
+    $field = $languages_list[$language];
+  }
+  else {
+    // If country name cannot be found, return nothing.
+    $field = '';
+  }
+}
+
+/**
+ * Callback for array_walk().
+ */
+function _feeds_tamper_country_to_code_strtolower(&$word) {
+  $word = drupal_strtolower($word);
+}
+
+
+function merge_languages(){
+     $lang_new  = array();
+   $langes_list = _locale_get_predefined_list();
+
+    $lang_new = array( 'tes' => array('Bhutani'),
+   		       'ees' => array('Ewe', 'Ɛʋɛ'),
+    		       'gre' => array('Greek', 'Ελληνικά'),
+    		       'eng' => array('English')
+    		       				);
+
+
+   $langes_list =  array_merge($langes_list,$lang_new);
+ 
+ return $langes_list;
+}
+
